@@ -1,6 +1,8 @@
 
 #include <chrono>
 #include <iostream>
+#include <fstream>
+#include <string>
 #include <vector>
 #include <pcl/point_types.h>
 #include <pcl/io/pcd_io.h>
@@ -43,6 +45,13 @@ main (int argc, char** argv)
   pass.setFilterLimits (0.0, 1.0);
   pass.filter (*indices);
 
+  // std::cout << "loopy" << std::endl;
+  // for(int pi = 0; pi<100; pi++) {
+  //   std::cout << (*cloud).points[pi].x << " " << (*cloud).points[pi].y << " " << (*cloud).points[pi].z << " " << "ci" << std::endl;;
+  // }
+  // std::vector<pcl::PointXYZ> data = (*cloud).points;
+  // std::cout << "pts " << data.size () << std::endl;
+
   pcl::RegionGrowing<pcl::PointXYZ, pcl::Normal> reg;
   reg.setMinClusterSize (50);
   reg.setMaxClusterSize (1000000);
@@ -61,13 +70,30 @@ main (int argc, char** argv)
   std::cout << "region growing = " << std::chrono::duration_cast<std::chrono::microseconds>(end2 - begin2).count() << "[µs]" << std::endl;
 
   std::cout << "number of clusters: " << clusters.size () << std::endl;
-  
-  for(int ci=0; ci++; ci<clusters.size()) {
-      for(int pi=0; pi++; pi<clusters[ci].indices.size()) {
-        std::cout << clusters[ci].indices[pi] << std::endl;
+
+  const auto p1 = std::chrono::system_clock::now();
+  const int time = std::chrono::duration_cast<std::chrono::seconds>(p1.time_since_epoch()).count();
+  const auto filename = "/things/out_"+ std::to_string(time) +".pts";
+  std::ofstream out;
+  out.open(filename, std::ios_base::app);
+  //std::streambuf *coutbuf = std::cout.rdbuf(); //save old buf
+  //std::cout.rdbuf(out.rdbuf()); //redirect std::cout to out.txt!
+
+  //std::string word;
+  //std::cin >> word;           //input from the file in.txt
+  //std::cout << word << "  ";  //output to the file out.txt
+
+
+  std::cout << "here comes out loop:" << std::endl;
+  for(int ci=0; ci<clusters.size(); ci++) {
+      std::cout << "cluster=" << ci << std::endl;
+      for(int pi=0; pi<clusters[ci].indices.size();pi++) {
+        const auto pidx = clusters[ci].indices[pi];
+        out << (*cloud).points[pidx].x << " " << (*cloud).points[pidx].y << " " << (*cloud).points[pidx].z << " " << ci << std::endl;;
+        //std::cout << clusters[ci].indices[pi] << std::endl;
       }
   }
-
+  std::cout << "File write finished." << std::endl;
 
 //   std::cout << "First cluster has " << clusters[0].indices.size () << " points." << std::endl;
 //   std::cout << "These are the indices of the points of the initial" <<
